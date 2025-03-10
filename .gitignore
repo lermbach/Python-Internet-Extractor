@@ -1,0 +1,26 @@
+# Byte-compiled / cached files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+env/
+
+# OS-specific files
+.DS_Store  # macOS
+Thumbs.db  # Windows
+
+# Python dependency files
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Downloaded video files (optional)
+downloads/
+*.mp4
+*.webm
+*.mkv
+*.avi
