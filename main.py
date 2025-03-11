@@ -11,9 +11,14 @@ def download(url, output_folder="downloads"): # Define video/playlist download f
     """
     os.makedirs(output_folder, exist_ok=True)  # Ensure output folder exists
 
+    # Check if the URL is a playlist by looking for "list=" in the URL
+    if "list=" in url:
+        output_template = os.path.join(output_folder, '%(playlist_title)s/%(title)s.%(ext)s')
+    else:
+        output_template = os.path.join(output_folder, '%(title)s.%(ext)s')
+
     options = { 'format': 'best',
-                'outtmpl': os.path.join(output_folder, '%(playlist_title)s/%(title)s.%(ext)s'),  
-                # Saves as "output_folder/Playlist Name/Video Title.mp4"
+                'outtmpl': output_template, # Saves single videos differently from playlists
                 'noplaylist': False,  # Allow playlist downloads
             } 
     
