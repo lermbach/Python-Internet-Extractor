@@ -1,5 +1,6 @@
 import yt_dlp # for downloading videos
 import os  # For handling folder creation
+import sys  # To exit script on errors
 
 def download(url, selected_format="best", output_folder="downloads"): # Define video/playlist download function
     """
@@ -23,34 +24,55 @@ def download(url, selected_format="best", output_folder="downloads"): # Define v
         'outtmpl': output_template,  # Saves single videos differently from playlists
         'noplaylist': False,  # Allow playlist downloads
     }
-    
-    with yt_dlp.YoutubeDL(options) as ydl: # Create a YoutubeDL instance
-        ydl.download([url]) # Start download
+    try: 
+        with yt_dlp.YoutubeDL(options) as ydl: # Create a YoutubeDL instance
+            ydl.download([url]) # Start download
+    except yt_dlp.utils.DownloadError as e:
+        print(f"\n❌ Error: Failed to download video.\nDetails: {e}")
+        sys.exit(1)  # Exit the script with an error code
+    except Exception as e:
+        print(f"\n❌ Unexpected Error: {e}")
+        sys.exit(1) 
 
 if __name__ == "__main__":
-    url = input("Enter Video/Playlist URL: ").strip() # Prompt user for video/playlist URL
+    try:
+        url = input("Enter Video/Playlist URL: ").strip()  # Prompt user for video/playlist URL
+        if not url:
+            raise ValueError("URL cannot be empty.")
 
-    # Prompt user for output folder / default to "downloads/"
-    output_folder = input("Enter output folder (leave empty for 'downloads'): ").strip() or "downloads"
+        # Prompt user for output folder / default to "downloads/"
+        output_folder = input("Enter output folder (leave empty for 'downloads'): ").strip() or "downloads"
 
-    # Print format list
-    print("\nChoose a format:")
-    print("1 - Best quality (default)")
-    print("2 - MP4")
-    print("3 - WEBM")
-    print("4 - Best quality (audio only)")
-    # Prompt user to choose format
-    format_option = input("Enter format number: ").strip() or "1"  # Default to "1" (best quality)
+        # Print format list
+        print("\nChoose a format:")
+        print("1 - Best quality (default)")
+        print("2 - MP4")
+        print("3 - WEBM")
+        print("4 - Best quality (audio only)")
+        # Prompt user to choose format
+        format_option = input("Enter format number: ").strip() or "1"  # Default to "1" (best quality)
+        
+        # Mapping user choice to yt-dlp format codes
+        format_map = {
+            "1": "best",  # Best available quality
+            "2": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",  # MP4
+            "3": "bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]",  # WEBM
+            "4": "bestaudio/best",  # Audio only (best available quality)
+        }
+        if format_option not in format_map:
+            raise ValueError("Invalid format selection. Please enter a number between 1-4.")
 
-    # Mapping user choice to yt-dlp format codes
-    format_map = {
-        "1": "best",  # Best available quality
-        "2": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",  # MP4
-        "3": "bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]",  # WEBM
-        "4": "bestaudio/best",  # Audio only (best available quality)
-    }
+        # Get the format string from the mapping (default to "best")
+        selected_format = format_map.get(format_option, "best")
 
-    # Get the format string from the mapping (default to "best")
-    selected_format = format_map.get(format_option, "best")
+        download(url, selected_format, output_folder) # Call download function
 
-    download(url, selected_format, output_folder) # Call download function
+    except ValueError as e:
+        print(f"\n❌ Input Error: {e}")
+        sys.exit(1)
+    except KeyboardInterrupt:
+        print("\n❌ Process interrupted by user.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n❌ Unexpected Error: {e}")
+        sys.exit(1)
