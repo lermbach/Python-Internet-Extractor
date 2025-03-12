@@ -91,22 +91,28 @@ if __name__ == "__main__":
         # Prompt user for output folder / default to "downloads/"
         output_folder = input("Enter output folder (leave empty for 'downloads'): ").strip() or "downloads"
 
+        formats = [
+            ("1 - Best quality (default)", "[📺 Video]"),
+            ("2 - Best quality (audio only)", "[📺 Video (No Video Track)]"),
+            ("3 - MP4", "[📺 Video]"),
+            ("4 - WEBM", "[📺 Video]"),
+            ("5 - Convert to MP3 (Requires FFmpeg)", "[🎵 Audio File]")
+        ]
         # Print format list
         print("\nChoose a format:")
-        print("1 - Best quality (default)")
-        print("2 - MP4")
-        print("3 - WEBM")
-        print("4 - Best quality (audio only)")
-        print("5 - Convert to MP3 (Requires FFmpeg)")
+        # Loop through format list and display options
+        for text, tag in formats:
+            print(f"{text.ljust(37)} {tag}")  # Aligns text
+
         # Prompt user to choose format
         format_option = input("Enter format number: ").strip() or "1"  # Default to "1" (best quality)
 
         # Mapping user choice to yt-dlp format codes
         format_map = {
             "1": "best",  # Best available quality
-            "2": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",  # MP4
-            "3": "bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]",  # WEBM
-            "4": "bestaudio/best",  # Audio only (best available quality)
+            "2": "bestaudio/best",  # Audio only (best available quality)
+            "3": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",  # MP4
+            "4": "bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]",  # WEBM
             "5": "bestaudio/best"  # For MP3 conversion
         }
         if format_option not in format_map:
