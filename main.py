@@ -2,6 +2,10 @@ import yt_dlp # for downloading videos
 import os  # For handling folder creation
 import sys  # To exit script on errors
 
+def is_ffmpeg_installed():
+    """Check if FFmpeg is installed using yt-dlp's built-in detection."""
+    return yt_dlp.postprocessor.FFmpegPostProcessor().available
+
 def progress_hook(d):
     """
     Progress tracking callback function for yt-dlp.
@@ -47,6 +51,19 @@ def download(url, selected_format="best", output_folder="downloads"): # Define v
         'noplaylist': False,  # Allow playlist downloads
         'progress_hooks': [progress_hook], # Add progress tracking
     }
+
+    # If the selected format is "mp3", enable audio conversion
+    if format_option == "5":
+        if not is_ffmpeg_installed():
+            print("\n❌ Error: FFmpeg is required for MP3 conversion. Install it and try again.")
+            sys.exit(1)
+
+        options['postprocessors'] = [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192'
+        }]
+
     try: 
         with yt_dlp.YoutubeDL(options) as ydl: # Create a YoutubeDL instance
             ydl.download([url]) # Start download
@@ -58,6 +75,14 @@ def download(url, selected_format="best", output_folder="downloads"): # Define v
         sys.exit(1) 
 
 if __name__ == "__main__":
+
+    # Check if FFmpeg is installed and warn the user if missing
+    if not is_ffmpeg_installed():
+        print("\n⚠️  WARNING: FFmpeg not found.")
+        print("   - The downloaded format may not be the best available.")
+        print("   - FFmpeg is required for converting videos to MP3.")
+        print("   - 🔗 Official FFmpeg Download: https://ffmpeg.org/download.html\n")
+
     try:
         url = input("Enter Video/Playlist URL: ").strip()  # Prompt user for video/playlist URL
         if not url:
@@ -72,18 +97,20 @@ if __name__ == "__main__":
         print("2 - MP4")
         print("3 - WEBM")
         print("4 - Best quality (audio only)")
+        print("5 - Convert to MP3 (Requires FFmpeg)")
         # Prompt user to choose format
         format_option = input("Enter format number: ").strip() or "1"  # Default to "1" (best quality)
-        
+
         # Mapping user choice to yt-dlp format codes
         format_map = {
             "1": "best",  # Best available quality
             "2": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",  # MP4
             "3": "bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]",  # WEBM
             "4": "bestaudio/best",  # Audio only (best available quality)
+            "5": "bestaudio/best"  # For MP3 conversion
         }
         if format_option not in format_map:
-            raise ValueError("Invalid format selection. Please enter a number between 1-4.")
+            raise ValueError("Invalid format selection. Please enter a number between 1-5.")
 
         # Get the format string from the mapping (default to "best")
         selected_format = format_map.get(format_option, "best")
