@@ -2,6 +2,28 @@ import yt_dlp # for downloading videos
 import os  # For handling folder creation
 import sys  # To exit script on errors
 
+def progress_hook(d):
+    """
+    Progress tracking callback function for yt-dlp.
+    This function is automatically called by yt-dlp during the download process
+    to provide live updates on the progress.
+
+    :param d: dict - The progress dictionary from yt-dlp containing various details
+        about the current download status.
+    """
+    # If the video is currently downloading, show progress updates
+    if d['status'] == 'downloading':
+        percentage = d.get('_percent_str', '0%').strip()  # Download progress percentage
+        speed = d.get('_speed_str', 'N/A').strip()  # Current download speed
+        eta = d.get('_eta_str', 'N/A').strip()  # Estimated time remaining
+
+        # Print the progress dynamically (overwrites previous output on the same line)
+        print(f"\r⬇️ Downloading... {percentage} | Speed: {speed} | ETA: {eta}", end='', flush=True)
+
+    # When the download is finished, print a completion message
+    elif d['status'] == 'finished':
+        print("\n✅ Download complete!\n")  # Move to a new line after completion
+
 def download(url, selected_format="best", output_folder="downloads"): # Define video/playlist download function
     """
     Downloads a video or an entire playlist using yt-dlp.
@@ -23,6 +45,7 @@ def download(url, selected_format="best", output_folder="downloads"): # Define v
         'format': selected_format,  # Use selected format
         'outtmpl': output_template,  # Saves single videos differently from playlists
         'noplaylist': False,  # Allow playlist downloads
+        'progress_hooks': [progress_hook], # Add progress tracking
     }
     try: 
         with yt_dlp.YoutubeDL(options) as ydl: # Create a YoutubeDL instance
