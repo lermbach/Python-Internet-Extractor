@@ -2,31 +2,42 @@ import yt_dlp  # For checking if FFmpeg is installed and getting supported sites
 
 def get_supported_sites():
     """
-    Fetches the list of supported websites from yt-dlp and formats them into multiple columns.
+    Fetches the list of supported websites from yt-dlp.
 
-    :return: str - Formatted string containing the names of supported sites.
+    :return: list - A sorted list of supported site names.
     """
     try:
-        # Generate a list of all available extractors (site handlers)
+        # Get a list of supported sites from yt-dlp
         extractors = yt_dlp.extractor.gen_extractors()
-
-        # Collect and sort site names, ensuring only valid ones are included
         sites = sorted(set(e.IE_NAME for e in extractors if hasattr(e, "IE_NAME")))
 
-        col_width = 30  # Define fixed width for each column
-        num_cols = 3  # Number of columns in the output display
-        formatted_sites = ""  # Initialize the output string
-
-        # Iterate through the site names and format them into columns
-        for i, site in enumerate(sites, 1):
-            formatted_sites += site.ljust(col_width)  # Align site names evenly
-            if i % num_cols == 0:  # Insert a new line after every 'num_cols' entries
-                formatted_sites += "\n"
-
-        return formatted_sites.strip() 
+        return sites  # Return the raw site list
     except Exception as e:
-        # Handle any errors encountered during site retrieval
-        return f"⚠️ Error fetching sites: {e}"
+        print(f"⚠️ Error fetching sites: {e}")
+        return []  # Return an empty list if an error occurs
+    
+def format_supported_sites(supported_sites):
+    """
+    Formats the supported sites list into multiple columns for user readability.
+
+    :param supported_sites: list - The raw list of supported site names.
+    :return: str - Formatted string with site names arranged in columns.
+    """
+    if not supported_sites:
+        return "⚠️ No supported sites available."
+
+    num_cols = 3  # Number of columns for display
+    max_length = max(len(site) for site in supported_sites)  # Find longest site name
+    col_width = max(max_length + 2, 30)  # Set column width dynamically, minimum 30
+
+    formatted_sites = ""  # Initialize output string
+
+    for i, site in enumerate(supported_sites, 1):
+        formatted_sites += site.ljust(col_width)  # Align site names evenly
+        if i % num_cols == 0:  # Insert a new line after every 'num_cols' entries
+            formatted_sites += "\n"
+
+    return formatted_sites.strip()  # Return the formatted string
 
 
 def is_ffmpeg_installed():

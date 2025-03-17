@@ -1,7 +1,10 @@
 from core import download
 from input_handler import get_user_input
-from utils import show_ffmpeg_warning
+from utils import show_ffmpeg_warning, get_supported_sites
 import sys  # To handle system exit on errors
+
+# Fetch the supported sites when the program starts
+SUPPORTED_SITES = get_supported_sites()
 
 def main():
     """
@@ -14,7 +17,7 @@ def main():
     """
     try:
         # Get user input (URL, format, output folder)
-        url, selected_format, format_option, output_folder = get_user_input()
+        url, selected_format, format_option, output_folder = get_user_input(SUPPORTED_SITES)
         # Start the download process with the selected options
         download(url, selected_format, format_option, output_folder)
     except KeyboardInterrupt:

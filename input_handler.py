@@ -1,8 +1,8 @@
 from download_options import format_map, format_options  
 from validation import validate_format_selection, validate_url  
-from utils import get_supported_sites 
+from utils import format_supported_sites
 
-def get_user_input():
+def get_user_input(supported_sites):
     """
     Handles user input for URL, format selection, and output folder.
     Returns the user-selected values.
@@ -12,10 +12,10 @@ def get_user_input():
 
         if url == "?":  
             print("\n🌍 Supported Websites:\n")
-            print(get_supported_sites())  # Display supported sites list
+            print(format_supported_sites(supported_sites))  # Display formatted list in columns
             continue  # Restart input prompt after showing sites
         
-        validate_url(url)  
+        validate_url(url, supported_sites)  
         break  # Exit loop when valid URL is provided
 
     output_folder = input("Enter output folder (leave empty for 'downloads'): ").strip() or "downloads"

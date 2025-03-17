@@ -1,16 +1,27 @@
 from download_options import format_map
 from utils import is_ffmpeg_installed
-import sys  # exiting the program on validation failure
+import sys  # For exiting the program on validation failure
+from urllib.parse import urlparse # For extracting the domain from the URL
 
-def validate_url(url):
+def validate_url(url, supported_sites):
     """
-    Validates that the URL is not empty.
+    Validates that the URL is not empty and belongs to a supported site.
 
     :param url: str - The URL entered by the user.
+    :param supported_sites: list - The list of supported site names.
     """
     if not url:
         print("❌ Error: URL cannot be empty.")
-        sys.exit(1) 
+        sys.exit(1)
+
+    # Extract the domain from the URL
+    parsed_url = urlparse(url)
+    domain = parsed_url.netloc.lower()  # Extract domain (e.g., "youtube.com")
+
+    # Check if the domain matches any supported sites
+    if not any(site in domain for site in supported_sites):
+        print(f"❌ Error: This site is not supported.\nUse `?` to see supported sites.")
+        sys.exit(1)
 
 def validate_format_selection(format_option):
     """
