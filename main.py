@@ -1,134 +1,31 @@
-import yt_dlp # for downloading videos
-import os  # For handling folder creation
-import sys  # To exit script on errors
+from core import download
+from input_handler import get_user_input
+from utils import show_ffmpeg_warning
+import sys  # To handle system exit on errors
 
-def is_ffmpeg_installed():
-    """Check if FFmpeg is installed using yt-dlp's built-in detection."""
-    return yt_dlp.postprocessor.FFmpegPostProcessor().available
-
-def progress_hook(d):
+def main():
     """
-    Progress tracking callback function for yt-dlp.
-    This function is automatically called by yt-dlp during the download process
-    to provide live updates on the progress.
-
-    :param d: dict - The progress dictionary from yt-dlp containing various details
-        about the current download status.
+    Main script execution.
+    
+    - Displays FFmpeg warning (if applicable).
+    - Gets user input (URL, format, output folder).
+    - Calls the download function with user-selected options.
+    - Catches and displays errors to prevent crashes.
     """
-    # If the video is currently downloading, show progress updates
-    if d['status'] == 'downloading':
-        percentage = d.get('_percent_str', '0%').strip()  # Download progress percentage
-        speed = d.get('_speed_str', 'N/A').strip()  # Current download speed
-        eta = d.get('_eta_str', 'N/A').strip()  # Estimated time remaining
-
-        # Print the progress dynamically (overwrites previous output on the same line)
-        print(f"\r⬇️ Downloading... {percentage} | Speed: {speed} | ETA: {eta}", end='', flush=True)
-
-    # When the download is finished, print a completion message
-    elif d['status'] == 'finished':
-        print("\n✅ Download complete!\n")  # Move to a new line after completion
-
-def download(url, selected_format="best", output_folder="downloads"): # Define video/playlist download function
-    """
-    Downloads a video or an entire playlist using yt-dlp.
-    Saves files in the specified folder.
-
-    :param url: str - The URL of the video or playlist to download.
-    :param output_folder: str - Directory where files will be saved.
-    :param selected_format: str - The format in which the video should be downloaded.
-    """
-    os.makedirs(output_folder, exist_ok=True)  # Ensure output folder exists
-
-    # Check if the URL is a playlist by looking for "list=" in the URL
-    if "list=" in url:
-        output_template = os.path.join(output_folder, '%(playlist_title)s/%(title)s.%(ext)s')
-    else:
-        output_template = os.path.join(output_folder, '%(title)s.%(ext)s')
-
-    options = {
-        'format': selected_format,  # Use selected format
-        'outtmpl': output_template,  # Saves single videos differently from playlists
-        'noplaylist': False,  # Allow playlist downloads
-        'progress_hooks': [progress_hook], # Add progress tracking
-    }
-
-    # If the selected format is "mp3", enable audio conversion
-    if format_option == "5":
-        if not is_ffmpeg_installed():
-            print("\n❌ Error: FFmpeg is required for MP3 conversion. Install it and try again.")
-            sys.exit(1)
-
-        options['postprocessors'] = [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192'
-        }]
-
-    try: 
-        with yt_dlp.YoutubeDL(options) as ydl: # Create a YoutubeDL instance
-            ydl.download([url]) # Start download
-    except yt_dlp.utils.DownloadError as e:
-        print(f"\n❌ Error: Failed to download video.\nDetails: {e}")
-        sys.exit(1)  # Exit the script with an error code
+    try:
+        # Get user input (URL, format, output folder)
+        url, selected_format, format_option, output_folder = get_user_input()
+        # Start the download process with the selected options
+        download(url, selected_format, format_option, output_folder)
+    except KeyboardInterrupt:
+        # Handle user interrupt (Ctrl + C)
+        print("\n❌ Process interrupted by user.")
+        sys.exit(0)  # Exit with status code 0 (normal termination) 
     except Exception as e:
+        # Catch any unexpected errors and display the message
         print(f"\n❌ Unexpected Error: {e}")
-        sys.exit(1) 
+        sys.exit(1)  # Exit with status code 1 (indicates failure)
 
 if __name__ == "__main__":
-
-    # Check if FFmpeg is installed and warn the user if missing
-    if not is_ffmpeg_installed():
-        print("\n⚠️  WARNING: FFmpeg not found.")
-        print("   - The downloaded format may not be the best available.")
-        print("   - FFmpeg is required for converting videos to MP3.")
-        print("   - 🔗 Official FFmpeg Download: https://ffmpeg.org/download.html\n")
-
-    try:
-        url = input("Enter Video/Playlist URL: ").strip()  # Prompt user for video/playlist URL
-        if not url:
-            raise ValueError("URL cannot be empty.")
-
-        # Prompt user for output folder / default to "downloads/"
-        output_folder = input("Enter output folder (leave empty for 'downloads'): ").strip() or "downloads"
-
-        formats = [
-            ("1 - Best quality (default)", "[📺 Video]"),
-            ("2 - Best quality (audio only)", "[📺 Video (No Video Track)]"),
-            ("3 - MP4", "[📺 Video]"),
-            ("4 - WEBM", "[📺 Video]"),
-            ("5 - Convert to MP3 (Requires FFmpeg)", "[🎵 Audio File]")
-        ]
-        # Print format list
-        print("\nChoose a format:")
-        # Loop through format list and display options
-        for text, tag in formats:
-            print(f"{text.ljust(37)} {tag}")  # Aligns text
-
-        # Prompt user to choose format
-        format_option = input("Enter format number: ").strip() or "1"  # Default to "1" (best quality)
-
-        # Mapping user choice to yt-dlp format codes
-        format_map = {
-            "1": "best",  # Best available quality
-            "2": "bestaudio/best",  # Audio only (best available quality)
-            "3": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",  # MP4
-            "4": "bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]",  # WEBM
-            "5": "bestaudio/best"  # For MP3 conversion
-        }
-        if format_option not in format_map:
-            raise ValueError("Invalid format selection. Please enter a number between 1-5.")
-
-        # Get the format string from the mapping (default to "best")
-        selected_format = format_map.get(format_option, "best")
-
-        download(url, selected_format, output_folder) # Call download function
-
-    except ValueError as e:
-        print(f"\n❌ Input Error: {e}")
-        sys.exit(1)
-    except KeyboardInterrupt:
-        print("\n❌ Process interrupted by user.")
-        sys.exit(1)
-    except Exception as e:
-        print(f"\n❌ Unexpected Error: {e}")
-        sys.exit(1)
+    show_ffmpeg_warning()  # Display warning if FFmpeg is missing
+    main()  # Start the main execution flow
