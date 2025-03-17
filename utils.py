@@ -1,4 +1,33 @@
-import yt_dlp  # For checking if FFmpeg is installed 
+import yt_dlp  # For checking if FFmpeg is installed and getting supported sites
+
+def get_supported_sites():
+    """
+    Fetches the list of supported websites from yt-dlp and formats them into multiple columns.
+
+    :return: str - Formatted string containing the names of supported sites.
+    """
+    try:
+        # Generate a list of all available extractors (site handlers)
+        extractors = yt_dlp.extractor.gen_extractors()
+
+        # Collect and sort site names, ensuring only valid ones are included
+        sites = sorted(set(e.IE_NAME for e in extractors if hasattr(e, "IE_NAME")))
+
+        col_width = 30  # Define fixed width for each column
+        num_cols = 3  # Number of columns in the output display
+        formatted_sites = ""  # Initialize the output string
+
+        # Iterate through the site names and format them into columns
+        for i, site in enumerate(sites, 1):
+            formatted_sites += site.ljust(col_width)  # Align site names evenly
+            if i % num_cols == 0:  # Insert a new line after every 'num_cols' entries
+                formatted_sites += "\n"
+
+        return formatted_sites.strip() 
+    except Exception as e:
+        # Handle any errors encountered during site retrieval
+        return f"⚠️ Error fetching sites: {e}"
+
 
 def is_ffmpeg_installed():
     """

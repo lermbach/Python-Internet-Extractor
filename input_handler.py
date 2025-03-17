@@ -1,5 +1,6 @@
-from download_options import format_map, format_options 
-from validation import validate_format_selection, validate_url 
+from download_options import format_map, format_options  
+from validation import validate_format_selection, validate_url  
+from utils import get_supported_sites 
 
 def get_user_input():
     """
@@ -7,15 +8,21 @@ def get_user_input():
     Returns the user-selected values.
     """
     while True:
-        url = input("Enter Video/Playlist URL: ").strip()
-        validate_url(url) 
+        url = input("Enter Video/Playlist URL (or ? for supported sites): ").strip()
+
+        if url == "?":  
+            print("\n🌍 Supported Websites:\n")
+            print(get_supported_sites())  # Display supported sites list
+            continue  # Restart input prompt after showing sites
+        
+        validate_url(url)  
         break  # Exit loop when valid URL is provided
 
     output_folder = input("Enter output folder (leave empty for 'downloads'): ").strip() or "downloads"
 
     print("\nChoose a format:")
 
-    for text, tag in format_options: 
+    for text, tag in format_options:  
         print(f"{text.ljust(37)} {tag}")  # Aligns text for readability
 
     format_option = input("Enter format number: ").strip() or "1"
