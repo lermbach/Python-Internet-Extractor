@@ -1,4 +1,43 @@
 import yt_dlp  # For checking if FFmpeg is installed and getting supported sites
+import sys  # For low-level output handling
+import time  # For adding delays to simulate typewriter-style printing
+
+def print_ascii_art():
+    """
+    Prints an ASCII banner when the program starts.
+    """
+    ascii_art = """                                                                                          
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⣄
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡴⠯⠿⠟⢹⣇⡀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⡶⠋⡀⠀⢀⣠⣤⢿⣭⠛⠲⣄
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⡤⠤⠞⠁⢰⡞⠁⠀⠈⠀⠀⠀⠛⢁⣀⣚⡲⢤⣄⡀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⠖⠋⠁⠀⠀⠀⠀⠀⠀⠉⠓⢦⣄⠀⠀⠀⣠⠞⠛⠛⠛⠛⠀⠙⢷⣄
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⡾⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠻⣷⣴⠞⢁⡄⠀⠀⢀⣤⣤⣶⣶⣍⠳⣄
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⠟⠉⠁⠀⢀⣠⠤⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠣⣴⣿⠀⣠⠀⠀⠀⠀⠴⠛⠋⠁⠿⣄⡀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⠴⠛⠁⠀⠀⠀⢰⠏⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣿⡧⠀⠀⠀⠠⣶⡶⠾⢿⣿⣶⣽⡳⣄
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡤⠔⠚⠉⠀⠀⠀⠀⠀⠀⠀⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣄⠀⡀⠀⠀⠀⠴⠞⠛⠋⠉⠀⣸⡆
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡤⠖⠋⠁⠀⠰⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⠤⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⡿⠃⠀⠀⠀⠀⣤⣤⣶⣶⣶⣤⡙⢦⡀
+⠀⠀⠀⠀⠀⢀⣤⠖⠋⠁⠠⠤⠖⠒⠂⠀⠈⠓⠒⠒⠶⠒⠒⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⠀⠀⠀⠀⠀⠀⢀⠤⠄⠈⠙⠁⢠⡗
+⠀⠀⣀⣤⣾⣋⣠⣀⣀⣠⣤⣀⣀⣀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣴⣾⠟⠙⣳⣤⣤⣀⣈⣷
+⠀⠾⣭⡥⣤⣀⣀⣀⣀⣀⣀⣀⣀⣀⣉⣉⠉⠉⠉⠛⠒⠒⠒⠲⠶⠶⠶⠒⠒⠒⠒⠋⠉⠉⠙⠓⠶⠦⣤⣤⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣠⠤⠖⠛⠉⠀⠀⠀⠈⣿
+⢀⡞⠁⢀⡄⡙⢿⡟⠉⠙⢿⣿⡿⠿⡛⠛⢿⣿⡷⠒⠒⠲⣤⣤⣤⣤⣀⣤⣤⣤⣶⣦⣤⣀⡀⠀⣀⣀⣀⣀⣀⡉⠉⠉⠛⠛⠛⠿⠖⠚⠉⠉⠁⠀⠀⠀⠀⠀⠀⢀⣠⡶⠋
+⢸⡇⠀⠘⠲⣵⠈⣷⠀⠀⢸⡏⠀⠀⢳⢇⢸⡏⠀⠀⠀⠀⢹⡿⠋⠀⠀⠀⠀⠀⠹⣧⣉⣿⠉⠉⠉⠉⢉⣉⡉⠙⣿⣿⠓⠒⠲⠶⠶⠶⢶⣦⡄⠀⠀⢀⡼⠒⠒⠋⠁
+⠘⢧⣄⣀⣀⣠⡾⠃⠀⠀⣸⡇⠀⠀⠈⠉⣼⠃⠀⣀⣠⡀⣿⡁⠀⠀⠶⣶⡄⠀⠀⢸⣿⣇⠀⠀⠀⠀⠚⢦⣹⢀⣿⣿⡀⠀⠀⠀⠀⠀⢠⡿⠁⣠⡴⠋
+⠀⢀⣿⡿⢋⣉⠛⢷⣦⣴⣿⣧⣀⠀⣀⣰⡇⠀⠘⠣⠼⣤⣿⣷⣄⣀⠀⠈⠁⠀⣠⡿⠃⠻⣦⣀⠀⠀⠀⣀⣿⣿⠏⠈⠻⠶⠤⠤⣤⣴⡟⠁⣰⠏⠀⠀⠀⠀⠀
+⠀⣼⢻⡀⡎⣟⠀⠀⢙⣿⠟⠛⠛⠛⠛⡙⠻⠶⣤⣤⡞⠋⠁⠀⠈⠙⢳⣦⣠⣴⡯⢤⣤⣀⡀⢉⣿⣿⣟⠛⠛⣿⣄⠀⠀⠀⠀⢀⣼⠏⢀⡴⠁⠀⠀⠀⠀⠀
+⠀⣿⣌⣧⡈⠁⠀⠀⢹⣯⠀⠀⠀⠶⣉⡇⠀⣰⠛⣿⣄⠀⠀⠀⠀⠀⢀⣿⠏⠀⠀⠀⠠⡌⡙⢿⣿⠈⠉⠀⠀⠈⠙⠓⣶⣤⣴⠟⠁⢠⠟⠁⠀⠀⠀⠀⠀
+⠀⠳⠼⠭⣟⣓⣒⣛⠛⠛⢷⡀⠀⠀⠀⣠⠾⢅⣀⣨⠽⠷⠲⠤⠤⠴⣾⣯⣀⠀⠀⠀⠀⠃⢃⣼⣿⣄⡀⠀⠀⠀⢀⣰⣿⡿⠁⣠⠖⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠈⠉⠉⠉⠉⠻⣅⢀⣚⣿⠖⠒⠒⠲⠶⠤⠤⠤⠤⠤⠤⠤⠾⣏⠀⠀⠀⢶⣏⣉⣉⣉⣉⣉⣉⣉⣉⣉⣁⠴⠚⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣤⣤⣒⣋⣀⣀⣠⠖⠛⠛⠀⠀⠀⠀⠀⠀⠉⠉
+
+Python Internet Extractor. Press Ctrl+C to exit the program."""
+
+    for char in ascii_art:
+        sys.stdout.write(char)  # Print character without newline
+        sys.stdout.flush()  # Force immediate output
+        time.sleep(0.001)  # Delay for slow printing 
+
+    print("\n")  # Move to the next line after ASCII art is fully printed
 
 def get_supported_sites():
     """
@@ -54,7 +93,7 @@ def show_ffmpeg_warning():
     Displays a warning if FFmpeg is not installed.
     """
     if not is_ffmpeg_installed():
-        print("\n⚠️  WARNING: FFmpeg not found.")
+        print("⚠️  WARNING: FFmpeg not found.")
         print("   - The downloaded format may not be the best available.")
         print("   - FFmpeg is required for converting videos to MP3.")
         print("   - 🔗 Official FFmpeg Download: https://ffmpeg.org/download.html\n")

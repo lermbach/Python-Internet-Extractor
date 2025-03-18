@@ -1,12 +1,10 @@
 from core import download
 from input_handler import get_user_input
-from utils import show_ffmpeg_warning, get_supported_sites
+from utils import show_ffmpeg_warning, get_supported_sites, print_ascii_art
 import sys  # To handle system exit on errors
 
 # Fetch the supported sites when the program starts
 SUPPORTED_SITES = get_supported_sites()
-
-print("\nPress Ctrl+C to exit the program.\n")  
 
 def main():
     """
@@ -34,5 +32,6 @@ def main():
             sys.exit(1)  # Exit with status code 1 (indicates failure)
 
 if __name__ == "__main__":
+    print_ascii_art()  # Print starup art
     show_ffmpeg_warning()  # Display warning if FFmpeg is missing
     main()  # Start the main execution flow
