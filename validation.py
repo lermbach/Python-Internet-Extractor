@@ -1,34 +1,37 @@
 from download_options import format_map
 from utils import is_ffmpeg_installed
-from urllib.parse import urlparse # For extracting the domain from the URL
+import yt_dlp  # For url validation
+import re  # Regex 
 
-def validate_url(url, supported_sites):
+def validate_url(url):
     """
-    Validates that the URL is not empty and belongs to a supported site.
+    Uses yt-dlp's built-in validation to check if the URL belongs to a supported site.
 
     :param url: str - The URL entered by the user.
-    :param supported_sites: list - The raw list of supported site names.
-    :raises ValueError: If the URL is empty or the site is unsupported.
     """
+    # Ensure the URL is not empty or just whitespace
     if not url.strip():
         raise ValueError("❌ Error: URL cannot be empty.")
-
-    # Extract the domain from the URL
-    parsed_url = urlparse(url)
-    domain_parts = parsed_url.netloc.lower().split(".")
-
-    # Extract base domain (e.g., 'YouTube' from 'www.YouTube.com')
-    base_domain = domain_parts[-2] if len(domain_parts) > 2 else domain_parts[0]
-
-    # Process the raw supported sites list to extract their base names
-    processed_sites = {site.split(":")[0].lower() for site in supported_sites}
-
-    # Check if the extracted base domain matches any supported site
-    if base_domain in processed_sites:
-        return  # URL is valid
-
-    # If no match, raise an error
-    raise ValueError("❌ Error: This site is not supported. Use `?` to see supported sites.")
+    
+    # Check if input looks like a valid URL
+    url_pattern = re.compile(r"^(https?|ftp)://[^\s/$.?#].[^\s]*$", re.IGNORECASE)
+    if not url_pattern.match(url):
+        raise ValueError("❌ Error: Invalid input. Please enter a valid URL.")
+    
+    # Let yt-dlp determine if the site is supported
+    try:
+        # Attempt to extract metadata for the URL using yt-dlp
+        # `download=False`: Do not download the video, just check its validity.
+        # `process=False`: Skip further processing, only validate the URL.
+        yt_dlp.YoutubeDL().extract_info(url, download=False, process=False)
+    except yt_dlp.utils.UnsupportedError:
+        raise ValueError("❌ Error: This site is not supported by yt-dlp.")
+    except yt_dlp.utils.DownloadError:
+        # Catch download-related errors (e.g., network issues, failed extraction)
+        raise ValueError("❌ Error: Failed to retrieve video information. The site may require login or be temporarily unavailable.")
+    except Exception:
+        # Catch any other unexpected errors
+        raise ValueError("❌ Error: Could not validate the URL. Please check the link and try again.")
 
 def validate_format_selection(format_option):
     """

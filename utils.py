@@ -1,4 +1,4 @@
-import yt_dlp  # For checking if FFmpeg is installed and getting supported sites
+import yt_dlp  # For checking if FFmpeg is installed
 import sys  # For low-level output handling
 import time  # For adding delays to simulate typewriter-style printing
 
@@ -38,46 +38,6 @@ Python Internet Extractor. Press Ctrl+C to exit the program."""
         time.sleep(0.001)  # Delay for slow printing 
 
     print("\n")  # Move to the next line after ASCII art is fully printed
-
-def get_supported_sites():
-    """
-    Fetches the list of supported websites from yt-dlp.
-
-    :return: list - A sorted list of supported site names.
-    """
-    try:
-        # Get a list of supported sites from yt-dlp
-        extractors = yt_dlp.extractor.gen_extractors()
-        sites = sorted(set(e.IE_NAME for e in extractors if hasattr(e, "IE_NAME")))
-
-        return sites  # Return the raw site list
-    except Exception as e:
-        print(f"⚠️ Error fetching sites: {e}")
-        return []  # Return an empty list if an error occurs
-    
-def format_supported_sites(supported_sites):
-    """
-    Formats the supported sites list into multiple columns for user readability.
-
-    :param supported_sites: list - The raw list of supported site names.
-    :return: str - Formatted string with site names arranged in columns.
-    """
-    if not supported_sites:
-        return "⚠️ No supported sites available."
-
-    num_cols = 3  # Number of columns for display
-    max_length = max(len(site) for site in supported_sites)  # Find longest site name
-    col_width = max(max_length + 2, 30)  # Set column width dynamically, minimum 30
-
-    formatted_sites = ""  # Initialize output string
-
-    for i, site in enumerate(supported_sites, 1):
-        formatted_sites += site.ljust(col_width)  # Align site names evenly
-        if i % num_cols == 0:  # Insert a new line after every 'num_cols' entries
-            formatted_sites += "\n"
-
-    return formatted_sites.strip()  # Return the formatted string
-
 
 def is_ffmpeg_installed():
     """

@@ -1,23 +1,17 @@
 from download_options import format_map, format_options  
 from validation import validate_format_selection, validate_url  
-from utils import format_supported_sites
 import os  # For handling file paths
 
-def get_user_input(supported_sites):
+def get_user_input():
     """
     Handles user input for URL, format selection, and output folder.
     Returns the user-selected values.
     """
     while True:
-        url = input("Enter Video/Playlist URL (or ? for supported sites): ").strip()
-
-        if url == "?":  
-            print("\n🌍 Supported Websites:\n")
-            print(format_supported_sites(supported_sites))  # Display formatted list in columns
-            continue  # Restart input prompt if user requests site list
+        url = input("Enter Video/Playlist URL: ").strip()
 
         try:
-            validate_url(url, supported_sites)  # Validate user input
+            validate_url(url)  # Validate user input
             break  # Exit loop when a valid URL is provided
         except ValueError as e:
             print(e)  # Print the error message
