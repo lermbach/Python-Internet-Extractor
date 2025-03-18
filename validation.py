@@ -7,18 +7,28 @@ def validate_url(url, supported_sites):
     Validates that the URL is not empty and belongs to a supported site.
 
     :param url: str - The URL entered by the user.
-    :param supported_sites: list - The list of supported site names.
+    :param supported_sites: list - The raw list of supported site names.
+    :raises ValueError: If the URL is empty or the site is unsupported.
     """
-    if not url:
+    if not url.strip():
         raise ValueError("❌ Error: URL cannot be empty.")
 
     # Extract the domain from the URL
     parsed_url = urlparse(url)
-    domain = parsed_url.netloc.lower()  # Extract domain (e.g., "youtube.com")
+    domain_parts = parsed_url.netloc.lower().split(".")
 
-    # Check if the domain matches any supported sites
-    if not any(site in domain for site in supported_sites):
-        raise ValueError("❌ Error: This site is not supported. Use `?` to see supported sites.")
+    # Extract base domain (e.g., 'YouTube' from 'www.YouTube.com')
+    base_domain = domain_parts[-2] if len(domain_parts) > 2 else domain_parts[0]
+
+    # Process the raw supported sites list to extract their base names
+    processed_sites = {site.split(":")[0].lower() for site in supported_sites}
+
+    # Check if the extracted base domain matches any supported site
+    if base_domain in processed_sites:
+        return  # URL is valid
+
+    # If no match, raise an error
+    raise ValueError("❌ Error: This site is not supported. Use `?` to see supported sites.")
 
 def validate_format_selection(format_option):
     """
