@@ -100,19 +100,31 @@ def show_ffmpeg_warning():
 
 def progress_hook(d):
     """
-    Callback function to track download progress in real-time.
-    This function is passed to yt-dlp's 'progress_hooks' option.
+    Displays a real-time progress bar.
 
     :param d: dict - Contains progress data from yt-dlp.
     """
     if d['status'] == 'downloading':
-        # Extract progress details or use default values
-        percentage = d.get('_percent_str', '0%').strip()  # Download percentage
+        total_size = d.get('total_bytes', 0) or d.get('total_bytes_estimate', 0)
+        downloaded = d.get('downloaded_bytes', 0)
+        percentage = d.get('_percent_str', '0%').strip()  # Get percentage string
         speed = d.get('_speed_str', 'N/A').strip()  # Download speed
         eta = d.get('_eta_str', 'N/A').strip()  # Estimated time remaining
 
-        # Print progress information dynamically (overwrites previous line)
-        print(f"\r⬇️ Downloading... {percentage} | Speed: {speed} | ETA: {eta}", end='\r', flush=True)
+        # Define progress bar length
+        bar_length = 30
+
+        if total_size:
+            # Calculate the number of blocks to display
+            filled_blocks = int((downloaded / total_size) * bar_length)
+            empty_blocks = bar_length - filled_blocks
+            progress_bar = "█" * filled_blocks + "-" * empty_blocks
+        else:
+            progress_bar = "-" * bar_length  # If total size unknown, show empty bar
+
+        # Print progress bar dynamically (overwrites previous output)
+        sys.stdout.write(f"\r{percentage} | {progress_bar} | Speed: {speed} | ETA: {eta}")
+        sys.stdout.flush()
 
     elif d['status'] == 'finished':
-        print("\n✅ Download complete!\n")  # Print a completion message when download is done
+        print("\n✅ Download complete!\n")  # Print a completion message when the download is done

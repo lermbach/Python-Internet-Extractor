@@ -3,6 +3,8 @@ import os  # For checking and creating output folder
 
 # General yt-dlp options (used for all downloads)
 BASE_YTDLP_OPTIONS = {
+    'quiet': False,
+    'noprogress': True,
     'outtmpl': '%(title)s.%(ext)s',  # Default filename format
     'noplaylist': False,  # Explicitly allow downloading playlists
     'progress_hooks': [progress_hook],  # Attach progress tracking function
